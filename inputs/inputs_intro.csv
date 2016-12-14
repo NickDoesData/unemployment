@@ -1,0 +1,11 @@
+name,series_id,group
+population,CNP16OV,population
+employed_persons,CE16OV,unemp
+unemployed_persons,UNEMPLOY,unemp
+civilian_labor_force,CLF16OV,population
+marginally_attached_workers,LNU05026642,lfpr
+discouraged_workers,LNU05026645,lfpr
+involuntary_part_time,LNS12032194,lfpr
+lfpr,CIVPART,lfpr
+unemp,UNRATE,unemp
+em_pop_ratio,EMRATIO,population
