@@ -1,10 +1,11 @@
-
 import cufflinks as cf
 import plotly.offline as py
 import plotly.graph_objs as go
-from plotly.tools import FigureFactory as FF
+#from plotly.tools import FigureFactory as FF
 import numpy as np
 import pandas as pd
+import datetime
+
 
 tableau20 = ['rgba(31, 119, 180,1.0)',  'rgba(255, 127, 14,1.0)',     
                  'rgba(44, 160, 44,1.0)', 'rgba(214, 39, 40,1.0)',     
@@ -16,18 +17,23 @@ tableau20 = ['rgba(31, 119, 180,1.0)',  'rgba(255, 127, 14,1.0)',
                  'rgba(197, 176, 213,1.0)', 'rgba(196, 156, 148,1.0)',
                  'rgba(247, 182, 210,1.0)','rgba(199, 199, 199,1.0)',
                 'rgba(219, 219, 141,1.0)', 'rgba(158, 218, 229,1.0)',]
+                
 
 def format_standard_cufflinks_chart(df, title, source="", note="", subtitle="", color="", height=800, width=500, line_width=2.5,
-	zero_line_emphasis=False,color_coded_legend=False, legend_random_shift=False):
+	zero_line_emphasis=False,color_coded_legend=False, legend_random_shift=False, area=False, legend_font_size=16):
 
 	cf.go_offline()
 
 	dims = (width, height)
 	width = line_width
 
+	
 	cufflinks_params = dict(theme='white', dimensions=dims, width=width, asFigure=True)
 
 	#optional cufflinks params
+	if area==True:
+		cufflinks_params['kind']='area'
+		cufflinks_params['fill']=True
 	if color <> "":
 		cufflinks_params['color']=color
 	else:
@@ -39,7 +45,6 @@ def format_standard_cufflinks_chart(df, title, source="", note="", subtitle="", 
 
 	if zero_line_emphasis == True:
 		cufflinks_params['hline'] = dict(y=.0001,color='black',width=1.25)
-
 
 
 	#use cufflinks to make a quick plot
@@ -62,7 +67,7 @@ def format_standard_cufflinks_chart(df, title, source="", note="", subtitle="", 
 	##add color coded legend to annotations
 	if color_coded_legend==True:
 		#create color coded legend list
-		legend_list = create_color_coded_legend(df, y_shift=legend_random_shift)
+		legend_list = create_color_coded_legend(df, y_shift=legend_random_shift,font_size=legend_font_size)
 		
 		#append color coded legend list
 		for x in legend_list:
@@ -76,7 +81,6 @@ def format_standard_cufflinks_chart(df, title, source="", note="", subtitle="", 
 		fig['layout'].update(showlegend=False)
 
 	return fig
-
 
 
 def create_title_dict(title, subtitle):
@@ -132,7 +136,7 @@ def create_note_dict(note, source):
 
 	return note_dict
 
-def create_color_coded_legend(df, y_shift=False):
+def create_color_coded_legend(df, y_shift=False, font_size=16):
 
 
 	df_range = (max(df.max()) - min(df.min())) / 10
@@ -160,7 +164,7 @@ def create_color_coded_legend(df, y_shift=False):
 	                    y=y_pos,                                        
 	                    align='left',
 	                    text = column,
-	                    font=dict(size=16,
+	                    font=dict(size=font_size,
 	                              color=tableau20[rank],),
 	                    xanchor='left',
 	                    yanchor='auto',
@@ -169,6 +173,59 @@ def create_color_coded_legend(df, y_shift=False):
 	                    )
 
 	return legend_list
+
+def create_date_line(fig, date, label):
+	"""Date should be in yyyy-mm-dd format (including dashes)"""
+	
+	shapes = fig['layout'].shapes
+	annotations = fig['layout'].annotations
+
+	shape_count = 0
+
+	# count the number of date lines already on the chart.
+	for shp in range(len(fig['layout'].shapes)):
+		#ignore origin lines (color #000000)
+		if fig['layout'].shapes[shp].line.color <> '#000000':
+			shape_count += 1
+
+	color = tableau20[len(fig['data']) + shape_count]
+
+	date = datetime.datetime.strptime(date, "%Y-%m-%d")
+
+	new_shape = {'line': {'color': color, 
+						'dash': 'solid', 
+						'width': 2.5},
+			    'type': 'line',
+			    'x0': date,
+			    'x1': date,
+			    'xref': 'x',
+			    'y0': 0,
+			    'y1': .975,
+			    'yref': 'paper'}
+
+	new_annotation = dict(showarrow=False,
+	                    x=date,
+	                    y=1.04 + (.065 * label.count("<br>")),  #add extra space for each line break                                       
+	                    align='center',
+	                    text = label,
+	                    font=dict(size=12,
+	                              color=color,),
+	                    xanchor='auto',
+	                    yanchor='auto',
+	                    yref='paper',
+	                    xref='x')
+
+	for anno in range(len(fig['layout'].annotations)):
+		if fig['layout'].annotations[anno].y == 1.2:
+			fig['layout'].annotations[anno].y = 1.25   
+
+	shapes.append(new_shape)
+	annotations.append(new_annotation)
+
+	fig['layout'].shapes = shapes
+	fig['layout'].annotations = annotations
+
+	return fig
 
 
 def shift_legend_entry(fig, col_name, shift_amt):

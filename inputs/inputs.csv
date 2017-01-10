@@ -31,3 +31,10 @@ civilian_labor_force,CLF16OV
 total_jobs,PAYEMS
 part_time_employees,LNS12600000
 full_time_employees,LNS12500000
+not_in_lf_to_employed,LNS17200000
+unemployed_to_employed,LNS17100000
+unemployed_to_unemployed,LNS17500000
+not_in_lf_to_unemployed,LNS17600000
+employed_to_unemployed,LNS17400000
+employed_to_not_in_lf,LNS17800000
+unemployed_to_not_in_lf,LNS17900000
